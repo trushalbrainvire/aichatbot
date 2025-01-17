@@ -1,0 +1,8 @@
+/node_modules
+/.shopify/*
+.env
+mix-manifest.json
+npm-debug.log
+shopify.app.toml
+/*/dist/
+/*/**/generate/
