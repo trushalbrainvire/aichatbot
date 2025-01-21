@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\Chat\Facades\Chat;
 use App\Http\Controllers\Controller;
@@ -19,7 +18,7 @@ class ChatController extends Controller
     public function invoke(Request $request): JsonResponse
     {
         try {
-            $response = Chat::storeClassifier(User::first(),  $request->get('logged_in_customer_id'));
+            $response = Chat::storeClassifier(Auth::user(),  $request->get('logged_in_customer_id'));
             return $this->successResponse($response);
         } catch (\Throwable $th) {
             return $this->errorResponse('Something went wrong !', 200, $th->getMessage());

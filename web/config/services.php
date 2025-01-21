@@ -37,6 +37,8 @@ return [
 
     "openai"=> [
         "secret" => env("OPENAI_SECRET")
+    ],
+    "serpapi"=>[
+        "api_key"=> env("SERPAPI_API_KEY")
     ]
-
 ];

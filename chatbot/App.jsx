@@ -5,6 +5,7 @@ import ChatMessage from "./components/ChatMessage";
 
 const App = () => {
   const chatBodyRef = useRef();
+  debugger
   const [chatLoading,setChatLoading] = useState(true);
   const [showChatbot, setShowChatbot] = useState(false);
   const [chatHistory, setChatHistory] = useState([
