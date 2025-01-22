@@ -4,7 +4,8 @@ namespace App\Services\Chat\Response;
 
 use App\Helpers\PrismProvider;
 
-final class GreetingsResponse{
+
+final class MessageResponse{
 
     use PrismProvider;
 

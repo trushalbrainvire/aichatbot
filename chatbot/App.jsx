@@ -5,7 +5,6 @@ import ChatMessage from "./components/ChatMessage";
 
 const App = () => {
   const chatBodyRef = useRef();
-  debugger
   const [chatLoading,setChatLoading] = useState(true);
   const [showChatbot, setShowChatbot] = useState(false);
   const [chatHistory, setChatHistory] = useState([
@@ -57,7 +56,7 @@ const App = () => {
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error.message || "Something went wrong!");
       if (data.status != "success") {
-        updateHistory(data.data, true);
+        updateHistory(data.errors, true);
       }
       updateHistory(data.data);
       setChatLoading(false)

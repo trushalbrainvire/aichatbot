@@ -2,7 +2,7 @@
 
 namespace App\Services\Chat\Actions;
 
-use App\Services\Chat\Response\{GreetingsResponse, ProductResponse, CustomerResponse};
+use App\Services\Chat\Response\{GreetingsResponse, ProductResponse, CustomerResponse, MessageResponse};
 
 class AIResponseGenerator
 {
@@ -20,7 +20,8 @@ class AIResponseGenerator
 
         switch ($this->intent) {
             case 'Greetings':
-                $responseMessage = self::getGreetResponse();
+                $responseMessage = $this->getGreetResponse();
+                break;
             case 'Product Inquiry':
                 $responseMessage = $this->getProductResponse();
                 break;
@@ -28,7 +29,7 @@ class AIResponseGenerator
                 $responseMessage = $this->getUserResponse();
                 break;
             default:
-                # code...
+                $responseMessage = $this->messageResponse();
                 break;
         }
 
@@ -45,5 +46,9 @@ class AIResponseGenerator
 
     protected function getUserResponse(){
         return (new CustomerResponse($this->message))->response($this->customer);
+    }
+
+    protected function messageResponse(){
+        return (new MessageResponse())->response($this->message);
     }
 }
