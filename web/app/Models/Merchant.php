@@ -25,6 +25,9 @@ class Merchant extends Model
         'currency_formats',
         'address',
         'domain',
+        'is_password_protected',
+        'plan',
+        'storefront_password',
         'user_id'
     ];
 
@@ -60,6 +63,16 @@ class Merchant extends Model
     }
 
     /**
+     * Get all of the products for the Merchant
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function products(): HasMany
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
      * Get all of the policies for the Merchant
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
@@ -68,4 +81,6 @@ class Merchant extends Model
     {
         return $this->hasMany(Policy::class);
     }
+
+
 }

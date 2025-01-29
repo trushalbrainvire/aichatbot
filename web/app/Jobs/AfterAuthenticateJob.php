@@ -2,15 +2,14 @@
 
 namespace App\Jobs;
 
-use App\Models\User;
 use App\Models\Merchant;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Http\Client\Pool;
 
 class AfterAuthenticateJob implements ShouldQueue
 {
@@ -19,30 +18,6 @@ class AfterAuthenticateJob implements ShouldQueue
     private $shopQuery = <<<GRAPHQL
         {
             shop {
-                id
-                name
-                shopOwnerName
-                contactEmail
-                currencyCode
-                currencyFormats{
-                    moneyFormat
-                    moneyWithCurrencyFormat
-                }
-                billingAddress{
-                    id
-                    phone
-                    address1
-                    address2
-                    company
-                    city
-                    province
-                    country
-                    zip
-                }
-                primaryDomain{
-                    host
-                    url
-                }
                 shopPolicies{
                     __typename
                     title
@@ -86,31 +61,47 @@ class AfterAuthenticateJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $endpoint = "https://".$this->user->name."/admin/api/".config('shopify-app.api_version')."/graphql.json";
-
-        $httpClientReq = Http::withHeaders([
+        $graphql_endpoint = "https://".$this->user->name."/admin/api/".config('shopify-app.api_version')."/graphql.json";
+        $shop_rest_endpoint = "https://".$this->user->name."/admin/api/".config('shopify-app.api_version')."/shop.json";
+        $header = [
             'X-Shopify-Access-Token'=> $this->user->password
-        ])->post($endpoint,["query"=> $this->shopQuery]);
+        ];
 
-        $shop = $httpClientReq->json()['data']['shop'];
+        $apiResponses = Http::pool(fn (Pool $pool) => [
+            $pool->as('first')->withHeaders($header)->get($shop_rest_endpoint),
+            $pool->as('second')->withHeaders($header)->post($graphql_endpoint,["query"=> $this->shopQuery])
+        ]);
+
+        $shop = $apiResponses['first']->json()['shop'];
+        $shopPolicies = $apiResponses['second']->json()['data']['shop']['shopPolicies'];
+
+        $address = [
+            "address1" => $shop['address1'],
+            "address2" => $shop['address2'],
+            "city" => $shop['city'],
+            "province" => $shop['province'],
+            "country" => $shop['country'],
+            "zip" => $shop['zip']
+        ];
 
         $merchnatData = [
             'merchant_id'=> $shop['id'],
-            'store'=>$shop['name'],
-            'owner'=>$shop['shopOwnerName'],
-            'email'=>$shop['contactEmail'],
-            'currency_code'=>$shop['currencyCode'],
-            'currency_formats'=>json_encode($shop['currencyFormats']),
-            'address'=>json_encode($shop['billingAddress']),
-            'domain'=>$shop['primaryDomain']['url'],
+            'store'=> $shop['name'],
+            'owner'=> $shop['shop_owner'],
+            'email'=> $shop['email'],
+            'currency_code'=> $shop['country_code'],
+            'currency_formats'=> json_encode($shop['money_format']),
+            'address'=> json_encode($address),
+            'domain'=> $shop['domain'],
+            'is_password_protected'=> $shop['password_enabled'],
+            'plan'=> $shop['plan_name'],
             'user_id'=>$this->user->id
         ];
 
         $merchant = Merchant::create($merchnatData);
 
-        $policies = $shop['shopPolicies'];
-        for ($i = 0; $i < count($policies); $i++) {
-            $policy = $policies[$i];
+        for ($i = 0; $i < count($shopPolicies); $i++) {
+            $policy = $shopPolicies[$i];
             $merchant->policies()->create([
                 'name' => $policy['title'],
                 'body'=> $policy['body']
@@ -119,7 +110,7 @@ class AfterAuthenticateJob implements ShouldQueue
 
         $httpClientAccessTokenReq = Http::withHeaders([
             'X-Shopify-Access-Token'=> $this->user->password
-        ])->post($endpoint,["query"=> $this->accessTokenMutation, "variables"=>['input'=>['title'=> config('app.name').' storefront access token']]]);
+        ])->post($graphql_endpoint,["query"=> $this->accessTokenMutation, "variables"=>['input'=>['title'=> config('app.name').' storefront access token']]]);
 
         $storefront_access_token = $httpClientAccessTokenReq->json()['data']['storefrontAccessTokenCreate']['storefrontAccessToken']['accessToken'];
 

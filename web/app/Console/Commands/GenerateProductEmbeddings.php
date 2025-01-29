@@ -69,13 +69,13 @@ class GenerateProductEmbeddings extends Command
             GRAPHQL;
 
             $products = array();
+
             // Variables for the query
             $variables = [
                 'first' => 5,
                 'after' => null
             ];
             $shop = User::first();
-
             $productQuery = $shop->api()->graph($query, $variables);
             $productsData = $productQuery['body']['container']['data']['products'];
             $products = $productsData['nodes'];
@@ -97,13 +97,12 @@ class GenerateProductEmbeddings extends Command
 
                 $response = Prism::embeddings()
                     ->using(Provider::OpenAI, 'text-embedding-ada-002')
-                    ->fromInput(json_encode($product))
+                    ->fromInput(json_encode(["title"=>$product['title'],"description"=>$product['description']]))
                     ->generate();
 
                 $embeddings = new Vector($response->embeddings);
 
-                $dbproduct = Product::create([
-                    'embeddings' => $embeddings,
+                $db_product = $shop->merchant->products()->create([
                     'product_id' => $product_id,
                     'graphql_id' => $product['id'],
                     'title' => $product['title'],
@@ -114,9 +113,14 @@ class GenerateProductEmbeddings extends Command
                     'onlineStoreUrl' => $product['onlineStoreUrl'],
                     'price' => isset($product['priceRangeV2']) ? $product['priceRangeV2']['minVariantPrice']['amount'] : 0.00,
                     'comparedAtPrice' => isset($product['compareAtPriceRange']) ? $product['compareAtPriceRange']['minVariantCompareAtPrice']['amount'] : 0.00,
-                    'tags' => json_encode($product['tags']),
-                    'options_and_values' => json_encode($product['options']),
-                    'merchant_id' => $shop->merchant->id
+                    'tags' => $product['tags'],
+                    'options_and_values' => $product['options']
+                ]);
+
+                $db_product->embedding()->create([
+                    'vectors'=>$embeddings,
+                    'metadata'=> ['data'=> $product],
+                    'merchant_id'=> $shop->merchant->id
                 ]);
             }
 

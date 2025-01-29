@@ -2,7 +2,7 @@
 
 namespace App\Services\Chat\Response;
 
-use App\Models\Product;
+use App\Models\Embedding;
 use Pgvector\Laravel\Vector;
 use App\Helpers\PrismProvider;
 use Pgvector\Laravel\Distance;
@@ -23,13 +23,14 @@ class ProductResponse {
         // Get your embeddings vector
         $messageEmbedding = new Vector($messageEmbeddingAPI->embeddings);
 
-        $products = Product::query()
-        ->nearestNeighbors('embeddings', $messageEmbedding, Distance::L2)
+        $products = Embedding::query()
+        ->nearestNeighbors('vectors', $messageEmbedding, Distance::L2)
         ->take(5)
-        ->select(['title','price','vendor','body', 'productType', 'tags'])
+        ->with('embeddable')
         ->get()
+        ->pluck('embeddable')
+        ->select(['title','body','handle','vendor','price'])
         ->toArray();
-
 
         $chatQuery = 'Context: '.json_encode($products)."\n\n----\n\nQuestion: ".$this->message;
 

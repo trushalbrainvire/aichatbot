@@ -7,6 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ankane/mitie": "^0.2.0",
         "echolabsdev/prism": "^0.23.0",
         "inertiajs/inertia-laravel": "^2.0",
         "kyon147/laravel-shopify": "^22.0",
@@ -41,6 +42,9 @@
         }
     },
     "scripts": {
+        "post-install-cmd": "Mitie\\Vendor::check",
+        "post-update-cmd": "Mitie\\Vendor::check",
+
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

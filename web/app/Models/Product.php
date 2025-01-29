@@ -2,20 +2,20 @@
 
 namespace App\Models;
 
-use Pgvector\Laravel\{Vector, HasNeighbors};
+use App\Casts\JSON;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Product extends Model
 {
-    use HasUuids, HasNeighbors;
+    use HasUuids;
     /**
      * table columns
      *
      * @var list<string>
      */
     protected $fillable = [
-        'embeddings',
         'product_id',
         'graphql_id',
         'title',
@@ -31,11 +31,19 @@ class Product extends Model
         'merchant_id'
     ];
 
-    protected $cast = [
-        'category' => 'array',
-        'tags'=> 'array',
-        'embeddings' => Vector::class,
-    ];
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'options_and_values' => JSON::class,
+            'tags'=> JSON::class,
+        ];
+    }
+
     /**
      * primary key of the equivalent table
      *
@@ -49,4 +57,22 @@ class Product extends Model
      * @var int
      */
     protected $foreignKey = 'merchant_id';
+
+    /**
+     * Get the merchant that owns the Product
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function merchant(): BelongsTo
+    {
+        return $this->belongsTo(Merchant::class);
+    }
+
+    /**
+     * Get the product's embedding.
+     */
+    public function embedding()
+    {
+        return $this->morphOne(Embedding::class, 'embeddable');
+    }
 }

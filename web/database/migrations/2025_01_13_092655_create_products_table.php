@@ -14,7 +14,6 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->uuid('id');
-            $table->vector('embeddings', 1536);
             $table->unsignedBigInteger('product_id');
             $table->string('graphql_id');
             $table->string('title');
@@ -27,10 +26,9 @@ return new class extends Migration
             $table->json('tags');
             $table->string('onlineStoreUrl')->nullable();
             $table->json('options_and_values');
-            $table->foreignUuid('merchant_id')->onDelete('cascade');
+            $table->foreignUuid('merchant_id');
             $table->timestamps();
         });
-        DB::statement('CREATE INDEX my_index ON products USING ivfflat (embeddings vector_l2_ops) WITH (lists = 100)');
     }
 
     /**

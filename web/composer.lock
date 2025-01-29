@@ -4,8 +4,52 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "17121fbb65c344878bfa86bf0d27a1ef",
+    "content-hash": "523e5822b0037fda5371749bdde17f79",
     "packages": [
+        {
+            "name": "ankane/mitie",
+            "version": "v0.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/ankane/mitie-php.git",
+                "reference": "93cd204450347a6fdaa83cd1721887525493fbe2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/ankane/mitie-php/zipball/93cd204450347a6fdaa83cd1721887525493fbe2",
+                "reference": "93cd204450347a6fdaa83cd1721887525493fbe2",
+                "shasum": ""
+            },
+            "require": {
+                "ext-ffi": ">= 8.1",
+                "php": ">= 8.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^10"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Mitie\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSL-1.0"
+            ],
+            "authors": [
+                {
+                    "name": "Andrew Kane",
+                    "email": "andrew@ankane.org"
+                }
+            ],
+            "description": "Named-entity recognition for PHP",
+            "support": {
+                "issues": "https://github.com/ankane/mitie-php/issues",
+                "source": "https://github.com/ankane/mitie-php"
+            },
+            "time": "2024-07-01T00:43:48+00:00"
+        },
         {
             "name": "beberlei/assert",
             "version": "v3.3.3",

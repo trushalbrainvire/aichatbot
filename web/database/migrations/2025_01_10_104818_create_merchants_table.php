@@ -22,8 +22,10 @@ return new class extends Migration
             $table->json('currency_formats');
             $table->json('address');
             $table->string('domain');
+            $table->boolean('is_password_protected');
+            $table->string('plan');
             $table->string('storefront_password')->nullable();
-            $table->foreignIdFor(User::class)->onDelete('cascade');
+            $table->foreignIdFor(User::class);
             $table->timestamps();
         });
     }

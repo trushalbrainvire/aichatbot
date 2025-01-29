@@ -18,6 +18,8 @@ use Illuminate\Foundation\Application;
 use EchoLabs\Prism\Schema\StringSchema;
 use App\Http\Controllers\ProfileController;
 use App\Models\User;
+use Illuminate\Http\Client\Pool;
+
 
 /* Route::get('/', function () {
     return Inertia::render('Welcome', [
@@ -28,35 +30,29 @@ use App\Models\User;
     ]);
 }); */
 Route::get('/', function () {
-    $customerQuery = <<<GRAPHQL
-        query Customer(\$id: ID!){
-            customer(id: \$id){
-                id
-                firstName
-                lastName
-                email
-                phone
-                addressesV2(first: 10){
-                    nodes{
-                        id
-                        company
-                        address1
-                        address2
-                        city
-                        zip
-                        province
-                        provinceCode
-                        country
-                        countryCodeV2
-                    }
+    $shopQuery = <<<GRAPHQL
+        {
+            shop {
+                shopPolicies{
+                    __typename
+                    title
+                    body
                 }
             }
         }
     GRAPHQL;
+    $rest_endpoint = "https://".auth()->user()->name."/admin/api/".config('shopify-app.api_version')."/shop.json";
+    $graph_endpoint = "https://".auth()->user()->name."/admin/api/".config('shopify-app.api_version')."/graphql.json";
 
-    $gidPrefix = "gid://shopify/Customer/";
+    $header = [
+        'X-Shopify-Access-Token'=> auth()->user()->password
+    ];
+    $responses = Http::pool(fn (Pool $pool) => [
+        $pool->as('first')->withHeaders($header)->get( $rest_endpoint),
+        $pool->as('second')->withHeaders($header)->post($graph_endpoint,["query"=> $shopQuery])
+    ]);
 
-    dd(User::first()->api()->graph($customerQuery,['id'=>$gidPrefix."8163588309285"]));
+    dd($responses['first']->json(), $responses['second']->json());
 })->middleware(['verify.shopify'])->name('home');
 
 
