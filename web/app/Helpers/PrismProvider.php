@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Tools\SearchTool;
 use EchoLabs\Prism\Prism;
 use EchoLabs\Prism\Enums\Provider;
 use EchoLabs\Prism\Text\Generator as TextGenerator;
@@ -12,6 +13,9 @@ trait PrismProvider {
     public function prismTextGeneratorFactory(): TextGenerator {
         return Prism::text()
         ->using(Provider::OpenAI, 'gpt-4o')
+        ->withTools([
+            new SearchTool()
+        ])
         ->withSystemPrompt(view('prompts.leila'))
         ->withMaxSteps(5)
         ->withClientRetry(2, 50);
