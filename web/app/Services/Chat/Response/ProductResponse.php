@@ -9,6 +9,7 @@ use Pgvector\Laravel\Distance;
 use App\Services\Chat\Messaging\MessagePrompts;
 use EchoLabs\Prism\ValueObjects\Messages\AssistantMessage;
 use EchoLabs\Prism\ValueObjects\Messages\UserMessage;
+use Illuminate\Support\Facades\Log;
 
 class ProductResponse {
     use PrismProvider;
@@ -31,6 +32,8 @@ class ProductResponse {
         ->pluck('embeddable')
         ->select(['title','body','handle','vendor','price'])
         ->toArray();
+
+        Log::info(json_encode($products));
 
         $chatQuery = 'Context: '.json_encode($products)."\n\n----\n\nQuestion: ".$this->message;
 
